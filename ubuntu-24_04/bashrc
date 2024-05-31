@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
 #shellcheck disable=SC2012
+#
+# Author: TJ Sharley <tsharley@gmail.com>, copyright 2024
+# script_version=2.4
+# debug=false
 ####################################################################################################
 ## bashrc for Ubuntu 24.04 LTS: executed by bash(1) for non-login shells.
-# If not running interactively, don't do anything
+
+# If not running interactively, return
 case $- in
     *i*) ;;
       *) return;;
 esac
-# no duplicate lines or lines starting with space in the history
+
+# Basic options for history and terminal sizing
 HISTCONTROL=ignoreboth
-# append to the history file, don't overwrite it, and set size
-shopt -s histappend
 HISTSIZE=100000
 HISTFILESIZE=200000
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
+shopt -s histappend
 shopt -s checkwinsize
 
 # File System and references
@@ -25,7 +28,10 @@ XDG_STATE_HOME="$HOME/.local/state"
 XDG_CACHE_HOME="$HOME/.cache"
 XDG_RUNTIME_DIR="$HOME/.local/bin/run"
 
-# Locations and command preferences
+# Locations, defaults and command preferences
+EDITOR="micro"
+VISUAL="$EDITOR"
+SUDO_EDITOR="$EDITOR"
 EXEC_DIR="$HOME/.local/bin"
 LOG_DIR="$HOME/.local/logs"
 SSH_CONFIG_DIR="$HOME/.ssh"
@@ -35,19 +41,16 @@ LIB_SCRIPTS_DIR="$HOME/Library/Scripts"
 LIB_RESOURCES_DIR="$HOME/Library/Resources"
 PROJECT_PARENT_DIR="$HOME/Projects"
 SEC_CONF_DIR="${XDG_CONFIG_HOME}/ts"
-EDITOR="micro"
 ED_CONFIG_DIR="${XDG_CONFIG_HOME}/micro"
-VISUAL="$EDITOR"
-SUDO_EDITOR="$EDITOR"
-INITIALS='ts'
-GREP_COLORS='auto'
-MANCOLOR=1
-MANPAGER='most -sdw'
-PAGER='most -sdw'
 GIT_PAGER='/opt/homebrew/bin/delta'
 INPUTRC="${XDG_CONFIG_HOME}/.inputrc"
-THEME_CONFIG="$HOME/Projects/theme/theme/theme.conf"
+THEME_CONFIG="$PROJECT_PARENT_DIR/theme/theme/theme.conf"
 TEMPLATE_DIR="$HOME/Templates"
+MANPAGER='most -sdw'
+PAGER='most -sdw'
+MANCOLOR="1"
+GREP_COLORS='auto'
+INITIALS='ts'
 
 # State controls
 HISTFILE="$XDG_STATE_HOME/.bash_history"   # History filepath
@@ -58,49 +61,12 @@ HISTTIMEFORMAT='%s'
 HISTCONTROL=ignoreboth:erasedups
 LESSHISTFILE="$HOME/CACHE/less/history"
 GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
-PROMPT_DIRTRIM=3
+PROMPT_DIRTRIM=3                           # truncates path in PS1
 set +a
 
-# If set, the pattern "**" used in a pathname expansion context will
-# match all files and zero or more directories and subdirectories.
-#shopt -s globstar
-# make less more friendly for non-text input files
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
-# set variable identifying chroot if applicable, used in the prompt below
-if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
-    debian_chroot=$(cat /etc/debian_chroot)
-fi
-# set a fancy prompt (non-color, unless we know we "want" color)
-case "$TERM" in
-    xterm-color|*-256color) color_prompt=yes;;
-esac
-# uncomment for a colored prompt, if the terminal has the capability; turned
-# off by default to not distract the user: the focus in a terminal window
-# should be on the output of commands, not on the prompt
-force_color_prompt=yes
-if [ -n "$force_color_prompt" ]; then
-    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-	color_prompt=yes
-    else
-	color_prompt=
-    fi
-fi
-if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
-else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
-fi
-unset color_prompt force_color_prompt
-# If this is an xterm set the title to user@host:dir
-case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
-esac
 
-# aliases
+### ---------- ALIASES ------------------------------------------------------------------------- ###
+
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
@@ -110,16 +76,7 @@ if [ -x /usr/bin/dircolors ]; then
     alias fgrep='fgrep --color=auto'
     alias egrep='egrep --color=auto'
 fi
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
-# if [ -f ~/.bash_aliases ]; then
-#     . ~/.bash_aliases
-# fi
+
 # enable completion
 if ! shopt -oq posix; then
   if [ -f /usr/share/bash-completion/bash_completion ]; then
@@ -128,7 +85,7 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-# completions from ssh config
+# completions for ssh config
 [[ -e "$HOME/.ssh/config" ]] && complete -o "default" \
     -o "nospace" -W "$(grep "^Host" ~/.ssh/config | \
     grep -v "[?*]" | cut -d " " -f2 | tr ' ' '\n')" scp sftp ssh
@@ -137,10 +94,12 @@ fi
 # ----- ls, file-ops and movement ---------------
 alias c="clear"
 if [[ "$(command -v eza)" != '' ]]; then
+    EZA_IGNORE='Library|Downloads|Desktop|Movies|Music|Pictures'
+    EZA_IGNORE+='|.DS_Store|__pycache__|.pytest_cache|.git'
     EZA_OPTIONS=(
     	-F
     	--group-directories-first
-    	-I='Library|Downloads|Desktop|Movies|Music|Pictures|.DS_Store|__pycache__|.pytest_cache|.git'
+    	-I="$EZA_IGNORE"
     	--no-time
 		-s=name
 		--color=auto
@@ -225,23 +184,21 @@ vwimg() {
 vact() {
 	if [[ -d .venv ]]; then
 		. .venv/bin/activate
-		for script in ~/.local/hooks/* ; do
-			[[ -x "$script" ]] && . "$script"
-		done
+		_hook=~/.local/hooks/set_venv_prompt
+		test -x "$_hook" && . "$_hook"; unset _hook
 	fi
 }
 
 alias ss="sudo "
 alias edit='micro '
 alias cfb='$EDITOR ${HOME}/.bashrc'
-#alias cff='$EDITOR ${HOME}/.functions'
-#alias cfp='$EDITOR ${HOME}/.paths'
-#alias cft='$EDITOR ${HOME}/.themes'
 alias cfk='$EDITOR ${HOME}/.config/kitty/kitty.conf'
 alias cfs='$EDITOR ${HOME}/.ssh/config'
 alias sb='. ~/.bashrc'
 
-#   ---- shell Functions ----------
+
+### ---------- FUNCTIONS ----------------------------------------------------------------------- ###
+
 #------------------------------------------------------------------------------
 # Stop all docker containers, delete them and reclaim space.
 # Arguments: none;          			Return: none
@@ -264,26 +221,6 @@ gcdot() {
     cd - || true
 }
 #------------------------------------------------------------------------------
-# venv and project scaffolding, python by default
-# Arguments: $1=name, flag (-b) to switch from default lang     Return: none
-mkp() {
-    PROJECT_TYPE=PYTHON
-    case "${1}" in
-        -b | --bash)
-            PROJECT_TYPE=BASH
-            shift
-            ;;
-        -p | --python)
-            shift
-            ;;
-        *)
-            :
-            ;;
-    esac
-    export PROJECT_TYPE
-    mkproject "$@"
-}
-#------------------------------------------------------------------------------
 # Create and activate a python virtual environment based on the cwd
 # Arguments: none;          			Return: none
 mkvenv() {
@@ -294,10 +231,10 @@ mkvenv() {
 # Run all executable files in a directory
 # Arguments: Path to dir;          Return: none
 run_scripts(){
-  for script in "${1}"/*; do
-    [ -x "${script}" ] || continue
-    "${script}"
-  done
+    for script in "${1}"/*; do
+        [ -x "${script}" ] || continue
+        "${script}"
+    done
 }
 #------------------------------------------------------------------------------
 # Reads a file and returns content of a secret to stdout
@@ -389,12 +326,10 @@ pyserv() {
     echo "PID: $pid"
 }
 #------------------------------------------------------------------------------
-# Web Page
+# Web page html boilerplate
 # Arguments: path								  ;          Return: 0
 webpage() {
-
     target_path="${1:-.}"
-
     cat <<-EOF >> "${target_path}/index.html"
     <!DOCTYPE html>
     <html lang="en">
@@ -411,7 +346,7 @@ webpage() {
 }
 #------------------------------------------------------------------------------
 # # Usage: get term size
-# Arguments: flags -l (lines), -c (columns), -a (all);	   Return: {{ return }}
+# Arguments: flags -l (lines), -c (columns), -a (all);	 Return: {{ return }}
 get_term_size() {
     shopt -s checkwinsize; (:;:) # (:;:) is a micro sleep to ensure export
 	case "$1" in
@@ -506,21 +441,32 @@ prepend_to_PS1() {
 	PS1="\n${content}${PS1:2:${#PS1}}"
 }
 
-PATH=$PATH:~/.local/bin:.
+
+### ---------- PATH ---------------------------------------------------------------------------- ###
+
+PATH=~/.local/bin:$PATH:
 export PATH
 
-XC=126
-YC=$((XC - 6))
-C0="\[\033[m\]"
-C1="\[\033[38;5;238m\]"
-C2="\[\033[38;5;241m\]"
-C3="\[\033[38;5;${YC}m\]"
-C4="\[\033[38;5;253m\]"
-C5="\[\033[38;5;${XC}m\]"
-C6="\[\033[38;5;19m\]"
-PS1="\n"
-PS1+="${C1}[${C3}"
-PS1+='$(date +%l:%M%p)'
-PS1+="${C1}] "
-PS1+="${C1}\u${C2}@${C2}\h "
-PS1+="${C5}\w ${C2}\$ ${C0}"
+
+### ---------- PROMPT -------------------------------------------------------------------------- ###
+
+ACF=~/.accent_colors             # Defaults for accent colors.  These can be sourced to set them
+AC1=126; AC2=$((XC - 6))         # externally, set in environment variables or reference something 
+[[ -e $ACF ]] && . $ACF          # like vmid.
+	        
+C0="\[\033[m\]"                  # Color / font effects reset
+
+C1="\[\033[38;5;238m\]"          # Set a color palette.
+C2="\[\033[38;5;241m\]"          # 
+C3="\[\033[38;5;${YC}m\]"        # These are gradient grays, other than where they point to the 
+C4="\[\033[38;5;253m\]"          # accent colors set above.
+C5="\[\033[38;5;${XC}m\]"        #
+C6="\[\033[38;5;19m\]"           #
+
+PS1="\n"                         # Simple default for PS1.  Starts with a new line to space things
+PS1+="${C1}[${C3}"               # out.  Four gradient colors and two accent colors.
+PS1+='$(date +%l:%M%p)'          # Show the time.
+PS1+="${C1}] "                   #
+PS1+="${C1}\u${C2}@${C2}\h "     # user @ host
+PS1+="${C5}\w ${C2}\$ ${C0}"     # current working directory and # (root) or $ (not root)
+
