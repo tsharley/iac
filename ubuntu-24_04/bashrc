@@ -1,73 +1,96 @@
 #!/usr/bin/env bash
+#shellcheck disable=SC2012
 ####################################################################################################
-
-## bashrc for Ubuntu 24.04 LTS
-
-# ~/.bashrc: executed by bash(1) for non-login shells.
-# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
-# for examples
-
+## bashrc for Ubuntu 24.04 LTS: executed by bash(1) for non-login shells.
 # If not running interactively, don't do anything
 case $- in
     *i*) ;;
       *) return;;
 esac
-
-# don't put duplicate lines or lines starting with space in the history.
-# See bash(1) for more options
+# no duplicate lines or lines starting with space in the history
 HISTCONTROL=ignoreboth
-
-# append to the history file, don't overwrite it
+# append to the history file, don't overwrite it, and set size
 shopt -s histappend
-
-# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-HISTSIZE=1000
-HISTFILESIZE=2000
-
+HISTSIZE=100000
+HISTFILESIZE=200000
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
+# File System and references
+set -a
+XDG_DATA_HOME="$HOME/.local/share"
+XDG_CONFIG_HOME="$HOME/.config"
+XDG_STATE_HOME="$HOME/.local/state"
+XDG_CACHE_HOME="$HOME/.cache"
+XDG_RUNTIME_DIR="$HOME/.local/bin/run"
+
+# Locations and command preferences
+EXEC_DIR="$HOME/.local/bin"
+LOG_DIR="$HOME/.local/logs"
+SSH_CONFIG_DIR="$HOME/.ssh"
+SCRATCH_DIR="$HOME/.local/scratch"
+SECRETS_DIR="$HOME/.config/secrets"
+LIB_SCRIPTS_DIR="$HOME/Library/Scripts"
+LIB_RESOURCES_DIR="$HOME/Library/Resources"
+PROJECT_PARENT_DIR="$HOME/Projects"
+SEC_CONF_DIR="${XDG_CONFIG_HOME}/ts"
+EDITOR="micro"
+ED_CONFIG_DIR="${XDG_CONFIG_HOME}/micro"
+VISUAL="$EDITOR"
+SUDO_EDITOR="$EDITOR"
+INITIALS='ts'
+GREP_COLORS='auto'
+MANCOLOR=1
+MANPAGER='most -sdw'
+PAGER='most -sdw'
+GIT_PAGER='/opt/homebrew/bin/delta'
+INPUTRC="${XDG_CONFIG_HOME}/.inputrc"
+THEME_CONFIG="$HOME/Projects/theme/theme/theme.conf"
+TEMPLATE_DIR="$HOME/Templates"
+
+# State controls
+HISTFILE="$XDG_STATE_HOME/.bash_history"   # History filepath
+HISTSIZE=100000                            # Max lines for internal history
+SAVEHIST=10000                             # Max lines in history file
+HISTFILESIZE=10000
+HISTTIMEFORMAT='%s'
+HISTCONTROL=ignoreboth:erasedups
+LESSHISTFILE="$HOME/CACHE/less/history"
+GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+PROMPT_DIRTRIM=3
+set +a
+
 # If set, the pattern "**" used in a pathname expansion context will
 # match all files and zero or more directories and subdirectories.
 #shopt -s globstar
-
-# make less more friendly for non-text input files, see lesspipe(1)
+# make less more friendly for non-text input files
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
-
-# set variable identifying the chroot you work in (used in the prompt below)
+# set variable identifying chroot if applicable, used in the prompt below
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
-
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
     xterm-color|*-256color) color_prompt=yes;;
 esac
-
 # uncomment for a colored prompt, if the terminal has the capability; turned
 # off by default to not distract the user: the focus in a terminal window
 # should be on the output of commands, not on the prompt
-#force_color_prompt=yes
-
+force_color_prompt=yes
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-	# We have color support; assume it's compliant with Ecma-48
-	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-	# a case would tend to support setf rather than setaf.)
 	color_prompt=yes
     else
 	color_prompt=
     fi
 fi
-
 if [ "$color_prompt" = yes ]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
 unset color_prompt force_color_prompt
-
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
 xterm*|rxvt*)
@@ -77,42 +100,27 @@ xterm*|rxvt*)
     ;;
 esac
 
-# enable color support of ls and also add handy aliases
+# aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
-    #alias dir='dir --color=auto'
-    #alias vdir='vdir --color=auto'
-
+    alias dir='dir --color=auto'
+    alias vdir='vdir --color=auto'
     alias grep='grep --color=auto'
     alias fgrep='fgrep --color=auto'
     alias egrep='egrep --color=auto'
 fi
-
-# colored GCC warnings and errors
-#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
-
-# some more ls aliases
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
-
 # Alias definitions.
 # You may want to put all your additions into a separate file like
 # ~/.bash_aliases, instead of adding them here directly.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
-
-if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
-fi
-
-# enable programmable completion features (you don't need to enable
-# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
-# sources /etc/bash.bashrc).
+# if [ -f ~/.bash_aliases ]; then
+#     . ~/.bash_aliases
+# fi
+# enable completion
 if ! shopt -oq posix; then
   if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
@@ -120,3 +128,399 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+# completions from ssh config
+[[ -e "$HOME/.ssh/config" ]] && complete -o "default" \
+    -o "nospace" -W "$(grep "^Host" ~/.ssh/config | \
+    grep -v "[?*]" | cut -d " " -f2 | tr ' ' '\n')" scp sftp ssh
+[[ -f ~/.fzf.bash ]] && source ~/.fzf.bash
+
+# ----- ls, file-ops and movement ---------------
+alias c="clear"
+if [[ "$(command -v eza)" != '' ]]; then
+    EZA_OPTIONS=(
+    	-F
+    	--group-directories-first
+    	-I='Library|Downloads|Desktop|Movies|Music|Pictures|.DS_Store|__pycache__|.pytest_cache|.git'
+    	--no-time
+		-s=name
+		--color=auto
+		--color-scale
+		--color-scale-mode=gradient
+		--icons=never
+	)
+    alias l='eza ${EZA_OPTIONS[@]}'
+    alias ll='eza -alTh -L=2 ${EZA_OPTIONS[@]}'
+    alias lll='eza -alTh -L=4 ${EZA_OPTIONS[@]}'
+elif [[ "$(command -v exa)" != '' ]]; then
+	EXA_OPTIONS=(
+		--classify
+		--color=auto
+		--color-scale
+		--no-icons
+		--sort=name
+		--group-directories-first
+	)
+	alias l='exa ${EXA_OPTIONS[@]}'
+	alias ll='exa --all --tree --level=2 ${EXA_OPTIONS[@]}'
+	alias lll='exa --all --tree --level=3 --long ${EXA_OPTIONS[@]}'
+else
+    alias l='ls --color=always'
+    alias la='ls -A --color=always'
+    alias ll="ls -lhAF --color=always"
+fi
+
+cd() {
+	builtin cd "$@" || return
+#	c; ls -F --color=always
+	if [[ "$(command -v eza)" != '' ]]; then
+        eza "${EZA_OPTIONS[@]}"
+    elif [[ "$(command -v exa)" != '' ]]; then
+        exa "${EXA_OPTIONS[@]}"
+    else
+        ls -F --color=always
+    fi
+	[[ -e ./.env ]] && . ./.env || :
+}
+
+alias cdbin='cd $EXEC_DIR'
+alias lsbin='ls -lAhF --color=always $EXEC_DIR'
+alias vsub='bash --login -x'
+
+# ----- git -------------------------------------
+alias gs='git status '
+alias gc='git clone '
+alias ga='git add . '
+alias gcm='git commit -m '
+alias gcl='git config --list'
+
+# ----- network and comms -----------------------
+alias ping='ping -c 5 '
+alias pping='clear; ping -c 5 '
+alias p8="clear; ping -c 5 8.8.8.8"
+if [[ $TERM == xterm-kitty ]]; then
+	alias ssh='TERM=xterm ssh '
+fi
+
+# ----- docker ----------------------------------
+alias dils='docker image ls'
+alias dcls='docker container ls'
+alias dpsa='docker ps -a'
+DFDIR=''
+if [ -e "${DFDIR}" ]; then
+    alias dcup='docker compose -f ${DFDIR}/docker-compose.yml up -d'
+    alias dcdn='docker compose -f ${DFDIR}/docker-compose.yml stop'
+    alias dcpull='docker compose -f ${DFDIR}/docker-compose.yml pull'
+    alias dclogs='docker compose -f ${DFDIR}/docker-compose.yml logs \
+    -tf --tail=50'
+    alias dtail='docker logs -tf --tail=50'
+fi
+
+# ----- docs ------------------------------------
+alias godocs='godoc -http :8000'
+
+# ----- misc ------------------------------------
+vwimg() {
+	kitten icat "$@"
+}
+vact() {
+	if [[ -d .venv ]]; then
+		. .venv/bin/activate
+		for script in ~/.local/hooks/* ; do
+			[[ -x "$script" ]] && . "$script"
+		done
+	fi
+}
+
+alias ss="sudo "
+alias edit='micro '
+alias cfb='$EDITOR ${HOME}/.bashrc'
+#alias cff='$EDITOR ${HOME}/.functions'
+#alias cfp='$EDITOR ${HOME}/.paths'
+#alias cft='$EDITOR ${HOME}/.themes'
+alias cfk='$EDITOR ${HOME}/.config/kitty/kitty.conf'
+alias cfs='$EDITOR ${HOME}/.ssh/config'
+alias sb='. ~/.bashrc'
+
+#   ---- shell Functions ----------
+#------------------------------------------------------------------------------
+# Stop all docker containers, delete them and reclaim space.
+# Arguments: none;          			Return: none
+docker_killall() {
+    docker stop "$(docker ps -aq)" && docker rm "$(docker ps -aq)" && \
+    docker system prune -a
+}
+#------------------------------------------------------------------------------
+# git add all (modified and untracked) and commit
+# Arguments: commit msg (optional);         	Return: none
+commit_all() {
+    git add .; git commit -m "${1:-'auto commit'}"
+}
+#------------------------------------------------------------------------------
+# DOTFILES - git add all (modified and untracked) and commit
+# Arguments: commit msg (optional);	         	Return: none
+gcdot() {
+    cd ~/.dotfiles || true
+    commit_all "$@"
+    cd - || true
+}
+#------------------------------------------------------------------------------
+# venv and project scaffolding, python by default
+# Arguments: $1=name, flag (-b) to switch from default lang     Return: none
+mkp() {
+    PROJECT_TYPE=PYTHON
+    case "${1}" in
+        -b | --bash)
+            PROJECT_TYPE=BASH
+            shift
+            ;;
+        -p | --python)
+            shift
+            ;;
+        *)
+            :
+            ;;
+    esac
+    export PROJECT_TYPE
+    mkproject "$@"
+}
+#------------------------------------------------------------------------------
+# Create and activate a python virtual environment based on the cwd
+# Arguments: none;          			Return: none
+mkvenv() {
+    virtualenv -p python3 "$(basename "$(pwd)")"
+    source env/bin/activate
+}
+#------------------------------------------------------------------------------
+# Run all executable files in a directory
+# Arguments: Path to dir;          Return: none
+run_scripts(){
+  for script in "${1}"/*; do
+    [ -x "${script}" ] || continue
+    "${script}"
+  done
+}
+#------------------------------------------------------------------------------
+# Reads a file and returns content of a secret to stdout
+# Arguments: name of secret;          Return: prints to stdout
+get_secret() {
+	local secret_file="$1"
+    read -r secret < "${secret_file}"
+    echo "${secret}"
+}
+#------------------------------------------------------------------------------
+# Get last two sections of cwd
+# Arguments: none;					          Return: none
+pwdtail () {
+	pwd|awk -F/ '{nlast = NF -1;print $nlast"/"$NF}'
+}
+#------------------------------------------------------------------------------
+# Common extract methods
+# Arguments: target file;     			     Return: none
+extract() {
+	for arc in "$@"; do
+		if [ -f "$arc" ] ; then
+			case "$arc" in
+				*.tar.bz2)   tar xvjf "$arc"             ;;
+				*.tar.gz)    tar xvzf "$arc"             ;;
+				*.bz2)       bunzip2 "$arc"              ;;
+				*.rar)       rar x "$arc"                ;;
+				*.gz)        gunzip "$arc"               ;;
+				*.tar)       tar xvf "$arc"              ;;
+				*.tbz2)      tar xvjf "$arc"             ;;
+				*.tgz)       tar xvzf "$arc"             ;;
+				*.zip)       unzip "$arc"                ;;
+				*.Z)         uncompress "$arc"           ;;
+				*.7z)        7z x "$arc"                 ;;
+				*)           echo "'$arc':unkown type"   ;;
+			esac
+		else
+			echo "'$arc': file not found or not valid"
+		fi
+	done
+}
+#------------------------------------------------------------------------------
+# TMPNAME: Create a time-based name for a temp file or directory
+# Arguments: $1='f' (file) or 'd' (dir)         Return: "tmp########"
+tmpname() {
+    str_time='tmp'"$(date +%s)"
+    if [[ "$1" == '-d' ]]; then
+    	mkdir -p "$str_time"; echo "Created directory: $str_time"
+    elif [[ "$1" == '-f' ]]; then
+    	touch "$str_time"; echo "Created file: $str_time"
+    else return
+    fi
+}
+#------------------------------------------------------------------------------
+# GG (get git): clone a git hub repository and cd to it
+# Arguments: $1 -> ghuser, ghrepo;      Return: none
+gg() {
+    if [ $# == 2 ]; then
+        ghuser=$1; ghrepo=$2
+    elif [ $# == 1 ]; then
+        ghuser=tsharley; ghrepo=$1
+    else
+        echo 1 or 2 arguments required; return 1
+    fi
+	git clone https://github.com/"${ghuser}"/"${ghrepo}".git
+	cd "${ghrepo}" || return
+}
+#------------------------------------------------------------------------------
+# MCD: Make directory, including any intermediate directories, and cd to it
+# Arguments: $1 -> dir name/path;        Return: 0
+mcd() {
+	mkdir -p "$1"
+	cd "$1" || return
+}
+#------------------------------------------------------------------------------
+# CMX: Make file executable
+# Arguments: $1 -> filename;          Return: 0
+cmx() {
+	if [[ ! -e "$1" ]]; then touch "$1"; fi
+    chmod +x "$1"
+}
+#------------------------------------------------------------------------------
+# PYSERV: Stand up a web server from the current dir, port optional
+# Arguments: $1 -> port, default 8080;          Return: 0
+pyserv() {
+    port=${1:-8080}
+    (python3 -m http.server "$port" &) # &>/dev/null; } &
+    pid="$!"
+    echo "Serving http traffic on:  http://localhost:8080"
+    echo "PID: $pid"
+}
+#------------------------------------------------------------------------------
+# Web Page
+# Arguments: path								  ;          Return: 0
+webpage() {
+
+    target_path="${1:-.}"
+
+    cat <<-EOF >> "${target_path}/index.html"
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <title>title</title>
+            <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+        </head>
+        <body>
+            <!-- page content -->
+        </body>
+    </html>
+	EOF
+}
+#------------------------------------------------------------------------------
+# # Usage: get term size
+# Arguments: flags -l (lines), -c (columns), -a (all);	   Return: {{ return }}
+get_term_size() {
+    shopt -s checkwinsize; (:;:) # (:;:) is a micro sleep to ensure export
+	case "$1" in
+		"-l")	printf '%s\n' "$LINES"			;;
+		"-c")	printf '%s\n' "$COLUMNS"		;;
+		*)		printf '%s\n' "$LINES $COLUMNS"	;;
+	esac
+}
+#------------------------------------------------------------------------------
+# Get cursor position
+# Arguments: none;          				Return: $x, $y
+get_cursor_pos() {
+    # Usage: get_cursor_pos
+    IFS='[;' read -p $'\e[6n' -d R -rs _ y x _
+    printf '%s\n' "$x $y"
+}
+#------------------------------------------------------------------------------
+# Color html hex code to rgb triplet
+# Arguments: [#]hexcode;          				Return: $r $g $b
+hex_to_rgb() {
+    # Usage: hex_to_rgb "#FFFFFF"
+    #        hex_to_rgb "000000"
+    : "${1/\#}"
+    ((r=16#${_:0:2},g=16#${_:2:2},b=16#${_:4:2}))
+    printf '%s\n' "$r $g $b"
+}
+#------------------------------------------------------------------------------
+# Color rgb triplet to html hex code
+# Arguments: $r $g $b          				Return: #hexcode;
+rgb_to_hex() {
+    # Usage: rgb_to_hex "r" "g" "b"
+    printf '#%02x%02x%02x\n' "$1" "$2" "$3"
+}
+#------------------------------------------------------------------------------
+# Show progress bar
+# Arguments: See below;          			Return: See below
+progbar() {
+    # Usage: bar 1 10
+    #            ^----- Elapsed Percentage (0-100).
+    #               ^-- Total length in chars.
+    elapsed_percent="$1"
+    ttl_len="$2"
+    ((elapsed=elapsed_percent*ttl_len/100))
+    # Create the bar with spaces.
+    printf -v prog  "%${elapsed}s"
+    printf -v total "%$(($2-elapsed))s"
+    printf '%s\r' "[${prog// /-}${total}]"
+}
+#------------------------------------------------------------------------------
+# Remove whitespace from ends of string
+# Arguments: $input_str;          				Return: $trimmed_str
+trim_string() {
+    # Usage: trim_string "   example   string    "
+    : "${1#"${1%%[![:space:]]*}"}"
+    : "${_%"${_##*[![:space:]]}"}"
+    printf '%s\n' "$_"
+}
+#------------------------------------------------------------------------------
+# Regex
+# Arguments: See below;          				Return: See below
+rgx() {
+    # Usage: regex "string" "regex"
+    candidate_str="${1}"
+    pattern="${2}"
+    [[ "$candidate_str" =~ $pattern ]] && printf '%s\n' "${BASH_REMATCH[1]}"
+}
+#------------------------------------------------------------------------------
+# fcd (fuzzy change dir)
+# Arguments: destination;          				Return: none
+fcd() {
+	if [[ -z "$1" ]]; then
+		selection="$(ls -a | fzf --height 40% --reverse)"
+		if [[ -d "$selection" ]]; then
+			cd "$selection" || return
+		elif [[ -f "$selection" ]]; then
+			edit "$selection"
+		fi
+	fi
+}
+#------------------------------------------------------------------------------
+# git_my (repository)
+# Arguments: repo_name = $1;          				Return: status
+git_my() {
+	name="$1"
+	git clone https://github.com/tsharley/"$name" "${2:-"$name"}"
+}
+#------------------------------------------------------------------------------
+# Add content to beginning of bash prompt
+# Arguments: content to add = $1;          				Return: status
+prepend_to_PS1() {
+	content="$1"
+	PS1="\n${content}${PS1:2:${#PS1}}"
+}
+
+PATH=$PATH:~/.local/bin:.
+export PATH
+
+XC=126
+YC=$((XC - 6))
+C0="\[\033[m\]"
+C1="\[\033[38;5;238m\]"
+C2="\[\033[38;5;241m\]"
+C3="\[\033[38;5;${YC}m\]"
+C4="\[\033[38;5;253m\]"
+C5="\[\033[38;5;${XC}m\]"
+C6="\[\033[38;5;19m\]"
+PS1="\n"
+PS1+="${C1}[${C3}"
+PS1+='$(date +%l:%M%p)'
+PS1+="${C1}] "
+PS1+="${C1}\u${C2}@${C2}\h "
+PS1+="${C5}\w ${C2}\$ ${C0}"
