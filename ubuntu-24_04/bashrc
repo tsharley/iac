@@ -454,19 +454,29 @@ ACF=~/.accent_colors             # Defaults for accent colors.  These can be sou
 AC1=126; AC2=$((XC - 6))         # externally, set in environment variables or reference something 
 [[ -e $ACF ]] && . $ACF          # like vmid.
 	        
+current_time(){
+	echo -e "$(date +%l:%M%p | sed 's/ //')"
+}
+
+
 C0="\[\033[m\]"                  # Color / font effects reset
 
 C1="\[\033[38;5;238m\]"          # Set a color palette.
 C2="\[\033[38;5;241m\]"          # 
-C3="\[\033[38;5;${YC}m\]"        # These are gradient grays, other than where they point to the 
+C3="\[\033[38;5;${AC2}m\]"       # These are gradient grays, other than where they point to the 
 C4="\[\033[38;5;253m\]"          # accent colors set above.
-C5="\[\033[38;5;${XC}m\]"        #
+C5="\[\033[38;5;${AC1}m\]"       #
 C6="\[\033[38;5;19m\]"           #
 
 PS1="\n"                         # Simple default for PS1.  Starts with a new line to space things
 PS1+="${C1}[${C3}"               # out.  Four gradient colors and two accent colors.
-PS1+='$(date +%l:%M%p)'          # Show the time.
+PS1+='$(current_time)'           # Show the time.
 PS1+="${C1}] "                   #
-PS1+="${C1}\u${C2}@${C2}\h "     # user @ host
+if [[ $(hostname -s) == mba2020 ]]; then
+	PS1+="ts${C2}@${C2}m20 "     # user @ host
+	PROMPT_DIRTRIM=2             # Going for a shorter prompt on MacOS.
+else
+    PS1+="${C1}\u${C2}@${C2}\h " # user @ host
+fi
 PS1+="${C5}\w ${C2}\$ ${C0}"     # current working directory and # (root) or $ (not root)
 
